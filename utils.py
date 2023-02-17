@@ -1,8 +1,13 @@
 import csv
 import json
 
+ADS_MODEL = 'ads.Ads'
+LOCATION_MODEL = 'ads.Location'
+USER_MODEL = 'ads.Users'
+CATEGORY_MODEL = 'ads.Categories'
 
-def csv_to_json(csvFilePath, jsonFilePath):
+
+def csv_to_json(csvFilePath, jsonFilePath, model):
     jsonArray = []
 
     # read csv file
@@ -12,15 +17,26 @@ def csv_to_json(csvFilePath, jsonFilePath):
 
         # convert each csv row into python dict
         for row in csvReader:
-            finish_row = {}
-            # add this python dict to json array
-            # finish_row = {"model": "ads.ads",
-            #               "pk": row["id"],
-            #               "fields": row}
-            finish_row = {"model": "ads.categories",
-                          "pk": row["id"],
-                          "fields": row}
-            jsonArray.append(finish_row)
+            record = {"model": model}
+            del row['id']
+
+            if model == ADS_MODEL:
+                row['price'] = float(row['price'])
+                row['author_id'] = int(row['author_id'])
+                row['category_id'] = int(row['category_id'])
+
+                if row['is_published'] == 'TRUE':
+                    row['is_published'] = True
+                else:
+                    row['is_published'] = False
+
+            elif model == LOCATION_MODEL:
+                row['lat'] = float(row['lat'])
+                row['lng'] = float(row['lng'])
+
+            record['fields'] = row
+
+            jsonArray.append(record)
 
     # convert python jsonArray to JSON String and write to file
     with open(jsonFilePath, 'w', encoding='utf-8') as json_file:
@@ -28,5 +44,7 @@ def csv_to_json(csvFilePath, jsonFilePath):
         json_file.write(json.dumps(jsonArray, indent=4, ensure_ascii=False))
 
 
-# csv_to_json("data/ads.csv", "fixtures/ads.json")
-csv_to_json("data/categories.csv", "fixtures/categories.json")
+csv_to_json("data/ad.csv", "fixtures/ads.json", ADS_MODEL)
+csv_to_json("data/category.csv", "fixtures/categories.json", CATEGORY_MODEL)
+csv_to_json("data/location.csv", "fixtures/location.json", LOCATION_MODEL)
+csv_to_json("data/user.csv", "fixtures/users.json", USER_MODEL)
