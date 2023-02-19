@@ -40,6 +40,22 @@ class CategoriesListView(ListView):
         }, safe=False)
 
 
+class AdsDetailView(DetailView):
+    model = Ads
+
+    def get(self, request, *args, **kwargs):
+        ads = get_object_or_404(Ads, *args, **kwargs)
+
+        return JsonResponse({"id": ads.id,
+                             "name": ads.name,
+                             "author": ads.author,
+                             "price": ads.price,
+                             "description": ads.description,
+                             "address": ads.address,
+                             "is_published": ads.is_published
+                             }, safe=False)
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class AdsListView(ListView):
     model = Ads
@@ -82,22 +98,6 @@ class AdsListView(ListView):
             "address": ads.address,
             "is_published": ads.is_published
         }, safe=False)
-
-
-class AdsDetailView(DetailView):
-    model = Ads
-
-    def get(self, request, *args, **kwargs):
-        ads = get_object_or_404(Ads, *args, **kwargs)
-
-        return JsonResponse({"id": ads.id,
-                             "name": ads.name,
-                             "author": ads.author,
-                             "price": ads.price,
-                             "description": ads.description,
-                             "address": ads.address,
-                             "is_published": ads.is_published
-                             }, safe=False)
 
 
 class CategoriesDetailView(DetailView):
