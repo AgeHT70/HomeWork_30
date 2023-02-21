@@ -99,8 +99,8 @@ class AdsListView(ListView):
                              "price": ads.price,
                              "description": ads.description,
                              "is_published": ads.is_published,
-                             "image": ads.image,
-                             "category": ads.category
+                             "image": str(ads.image),
+                             "category": ads.category.id
                              })
 
         return JsonResponse(response, safe=False, status=200)
@@ -118,7 +118,7 @@ class AdsDetailView(DetailView):
                              "price": ads.price,
                              "description": ads.description,
                              "is_published": ads.is_published,
-                             "image": ads.image,
+                             "image": str(ads.image),
                              "category": ads.category
                              }, safe=False)
 
