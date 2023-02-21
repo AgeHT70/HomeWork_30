@@ -95,11 +95,12 @@ class AdsListView(ListView):
         for ads in self.object_list:
             response.append({"id": ads.id,
                              "name": ads.name,
-                             "author": ads.author,
+                             "author": ads.author.id,
                              "price": ads.price,
                              "description": ads.description,
-                             "address": ads.address,
-                             "is_published": ads.is_published
+                             "is_published": ads.is_published,
+                             "image": ads.image,
+                             "category": ads.category
                              })
 
         return JsonResponse(response, safe=False, status=200)
@@ -113,7 +114,7 @@ class AdsDetailView(DetailView):
 
         return JsonResponse({"id": ads.id,
                              "name": ads.name,
-                             "author": ads.author,
+                             "author": ads.author.id,
                              "price": ads.price,
                              "description": ads.description,
                              "is_published": ads.is_published,
