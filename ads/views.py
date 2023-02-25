@@ -1,14 +1,14 @@
 import json
 
+from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import method_decorator
-from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
-# from django.views.generic.list import ListView
 
-from ads.models import Categories, Ads
+from HomeWork_27 import settings
+
+from ads.models import Categories, Ads, Users
 
 
 def index(request):
@@ -20,10 +20,13 @@ class CategoriesListView(ListView):
 
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
-
+        self.object_list = self.object_list.order_by("name")
         response = []
         for category in self.object_list:
-            response.append({"id": category.id, "name": category.name})
+            response.append({
+                "id": category.id,
+                "name": category.name
+            })
 
         return JsonResponse(response, safe=False, status=200)
 
@@ -34,9 +37,10 @@ class CategoriesDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         category = self.get_object()
 
-        return JsonResponse({"id": category.id,
-                             "name": category.name
-                             }, safe=False)
+        return JsonResponse({
+            "id": category.id,
+            "name": category.name
+        }, safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -91,17 +95,29 @@ class AdsListView(ListView):
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
 
-        response = []
-        for ads in self.object_list:
-            response.append({"id": ads.id,
+        self.object_list = self.object_list.select_related("author").order_by("-price")
+
+        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        ads_list = []
+        for ads in page_obj:
+            ads_list.append({"id": ads.id,
                              "name": ads.name,
-                             "author": ads.author.id,
+                             "author_id": ads.author_id,
+                             "author": ads.author.first_name,
                              "price": ads.price,
                              "description": ads.description,
                              "is_published": ads.is_published,
-                             "image": str(ads.image),
-                             "category": ads.category.id
+                             "image": ads.image.url if ads.image else None,
+                             "category_id": ads.category_id
                              })
+        response = {
+            "items": ads_list,
+            "num_pages": paginator.num_pages,
+            "total": paginator.count
+        }
 
         return JsonResponse(response, safe=False, status=200)
 
@@ -112,15 +128,17 @@ class AdsDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         ads = self.get_object()
 
-        return JsonResponse({"id": ads.id,
-                             "name": ads.name,
-                             "author": ads.author.id,
-                             "price": ads.price,
-                             "description": ads.description,
-                             "is_published": ads.is_published,
-                             "image": str(ads.image),
-                             "category": ads.category
-                             }, safe=False)
+        return JsonResponse({
+            "id": ads.id,
+            "name": ads.name,
+            "author_id": ads.author_id,
+            "author": ads.author.first_name,
+            "price": ads.price,
+            "description": ads.description,
+            "is_published": ads.is_published,
+            "image": ads.image.url if ads.image else None,
+            "category_id": ads.category_id
+        }, safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -145,43 +163,43 @@ class AdsCreateView(CreateView):
         return JsonResponse({
             "id": ads.id,
             "name": ads.name,
-            "author": ads.author,
+            "author_id": ads.author_id,
+            "author": ads.author.first_name,
             "price": ads.price,
             "description": ads.description,
             "is_published": ads.is_published,
-            "image": ads.image,
-            "category": ads.category
+            "image": ads.image.url if ads.image else None,
+            "category_id": ads.category_id
         }, safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AdsUpdateView(UpdateView):
     model = Ads
-    fields = ["name", "author", "price", "description", "is_published", "image", "category"]
+    fields = ["name", "author", "price", "description", "category"]
 
     def patch(self, request, *args, **kwargs):
         super().post(request, *args, **kwargs)
         ads_data = json.loads(request.body)
 
         self.object.name = ads_data["name"]
-        self.object.author = ads_data["author"]
+        self.object.author_id = ads_data["author_id"]
         self.object.price = ads_data["price"]
         self.object.description = ads_data["description"]
-        self.object.is_published = ads_data["is_published"]
-        self.object.image = ads_data["image"]
-        self.object.category = ads_data["category"]
+        self.object.category_id = ads_data["category_id"]
 
         self.object.save()
 
         return JsonResponse({
             "id": self.object.id,
             "name": self.object.name,
-            "author": self.object.author,
+            "author_id": self.object.author_id,
+            "author": self.object.author.first_name,
             "price": self.object.price,
             "description": self.object.description,
             "is_published": self.object.is_published,
-            "image": self.object.image,
-            "category": self.object.category
+            "image": self.object.image.url if self.object.image else None,
+            "category_id": self.object.category_id
         }, safe=False)
 
 
@@ -196,3 +214,59 @@ class AdsDeleteView(DeleteView):
         return JsonResponse({
             "status": "ok"
         }, status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AdsImageView(UpdateView):
+    model = Ads
+    fields = ["name", "image"]
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        self.object.image = request.FILES["image"]
+        self.object.save()
+
+        return JsonResponse({
+            "id": self.object.id,
+            "name": self.object.name,
+            "author_id": self.object.author_id,
+            "author": self.object.author.first_name,
+            "price": self.object.price,
+            "description": self.object.description,
+            "is_published": self.object.is_published,
+            "image": self.object.image.url if self.object.image else None,
+            "category_id": self.object.category_id
+        }, safe=False)
+
+
+class UserListView(ListView):
+    model = Users
+
+    def get(self, request, *args, **kwargs):
+        super().get(request, *args, **kwargs)
+
+        self.object_list = self.object_list.select_related("location")
+
+        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        users = []
+        for user in page_obj:
+            users.append({
+                "id": user.id,
+				"username": user.username,
+				"first_name": user.first_name,
+				"last_name": user.last_name,
+				"role": user.role,
+				"age": user.age,
+				"locations": list(map(user.location.get_all()))
+            })
+        response = {
+            "items": ads_list,
+            "num_pages": paginator.num_pages,
+            "total": paginator.count
+        }
+
+        return JsonResponse(response, safe=False, status=200)

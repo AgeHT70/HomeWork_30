@@ -9,6 +9,7 @@ urlpatterns = [
     path('ad/<int:pk>/', views.AdsDetailView.as_view(), name='detail_ad'),
     path('ad/<int:pk>/update/', views.AdsUpdateView.as_view(), name='update_ad'),
     path('ad/<int:pk>/delete/', views.AdsDeleteView.as_view(), name='delete_ad'),
+    path('ad/<int:pk>/image/', views.AdsImageView.as_view(), name='image_ad'),
 
     path('cat/', views.CategoriesListView.as_view(), name='cat'),
     path('cat/create/', views.CategoriesCreateView.as_view(), name='create_cat'),
