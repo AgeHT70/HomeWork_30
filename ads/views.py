@@ -8,7 +8,7 @@ from django.views.generic import DetailView, ListView, CreateView, UpdateView, D
 
 from HomeWork_27 import settings
 
-from ads.models import Categories, Ads, Users
+from ads.models import Categories, Ads
 
 
 def index(request):
@@ -239,34 +239,3 @@ class AdsImageView(UpdateView):
             "category_id": self.object.category_id
         }, safe=False)
 
-
-class UserListView(ListView):
-    model = Users
-
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        self.object_list = self.object_list.select_related("location")
-
-        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
-        page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
-
-        users = []
-        for user in page_obj:
-            users.append({
-                "id": user.id,
-				"username": user.username,
-				"first_name": user.first_name,
-				"last_name": user.last_name,
-				"role": user.role,
-				"age": user.age,
-				"locations": list(map(user.location.get_all()))
-            })
-        response = {
-            "items": ads_list,
-            "num_pages": paginator.num_pages,
-            "total": paginator.count
-        }
-
-        return JsonResponse(response, safe=False, status=200)

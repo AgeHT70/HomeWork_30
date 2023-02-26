@@ -2,8 +2,8 @@ import csv
 import json
 
 ADS_MODEL = 'ads.Ads'
-LOCATION_MODEL = 'ads.Location'
-USER_MODEL = 'ads.Users'
+LOCATION_MODEL = 'users.Location'
+USER_MODEL = 'users.User'
 CATEGORY_MODEL = 'ads.Categories'
 
 
@@ -33,6 +33,10 @@ def csv_to_json(csvFilePath, jsonFilePath, model):
             elif model == LOCATION_MODEL:
                 row['lat'] = float(row['lat'])
                 row['lng'] = float(row['lng'])
+
+            elif model == USER_MODEL:
+                row['locations'] = [int(row['location_id'])]
+                del row['location_id']
 
             record['fields'] = row
 

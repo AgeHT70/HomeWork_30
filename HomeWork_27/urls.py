@@ -24,7 +24,8 @@ from ads import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
-    path('', include('ads.urls'))
+    path('', include('ads.urls')),
+    path('user/', include('users.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
