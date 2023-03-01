@@ -16,12 +16,12 @@ class Categories(models.Model):
 
 class Ads(models.Model):
     name = models.CharField(max_length=100)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    author_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     price = models.DecimalField(max_digits=1000, decimal_places=2)
     description = models.TextField()
     is_published = models.BooleanField(default=False)
     image = models.ImageField(upload_to='images/', null=True)
-    category = models.ForeignKey(Categories, on_delete=models.CASCADE,
+    category_id = models.ForeignKey(Categories, on_delete=models.CASCADE,
                                  null=True)
 
     def __str__(self):
@@ -30,3 +30,12 @@ class Ads(models.Model):
     class Meta:
         verbose_name = "Объявление"
         verbose_name_plural = "Объявления"
+
+    @property
+    def author(self):
+        return self.author_id.first_name
+
+    @property
+    def category(self):
+        return self.category_id.name
+
