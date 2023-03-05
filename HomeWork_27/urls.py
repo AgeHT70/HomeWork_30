@@ -31,6 +31,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('', include('ads.urls')),
     path('user/', include('users.urls')),
+
 ]
 urlpatterns += router.urls
 

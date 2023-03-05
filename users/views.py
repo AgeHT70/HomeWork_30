@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,
 from rest_framework.viewsets import ModelViewSet
 
 from users.models import User, Location
-from users.serializer import UserSerializer, UserCreateSerializer, UserUpdateSerializer, UserDestroySerializer, \
+from users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, UserDestroySerializer, \
     LocationSerializer
 
 
